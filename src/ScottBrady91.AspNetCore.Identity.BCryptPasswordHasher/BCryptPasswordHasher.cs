@@ -13,14 +13,14 @@ namespace ScottBrady91.AspNetCore.Identity
             options = optionsAccessor?.Value ?? new BCryptPasswordHasherOptions();
         }
 
-        public string HashPassword(TUser user, string password)
+        public virtual string HashPassword(TUser user, string password)
         {
             if (password == null) throw new ArgumentNullException(nameof(password));
 
             return BCrypt.Net.BCrypt.HashPassword(password, options.WorkFactor, options.EnhancedEntropy);
         }
 
-        public PasswordVerificationResult VerifyHashedPassword(TUser user, string hashedPassword, string providedPassword)
+        public virtual PasswordVerificationResult VerifyHashedPassword(TUser user, string hashedPassword, string providedPassword)
         {
             if (hashedPassword == null) throw new ArgumentNullException(nameof(hashedPassword));
             if (providedPassword == null) throw new ArgumentNullException(nameof(providedPassword));
