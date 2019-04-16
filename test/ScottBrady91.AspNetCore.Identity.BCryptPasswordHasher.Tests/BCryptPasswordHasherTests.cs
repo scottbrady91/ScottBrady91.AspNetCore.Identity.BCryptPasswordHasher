@@ -27,7 +27,7 @@ namespace ScottBrady91.AspNetCore.Identity.BCryptPasswordHasher.Tests
 
             var hasher = new BCryptPasswordHasher<string>(
                 new OptionsWrapper<BCryptPasswordHasherOptions>(
-                    new BCryptPasswordHasherOptions {WorkFactor = random.Next(8, 20)}));
+                    new BCryptPasswordHasherOptions {WorkFactor = random.Next(8, 18)}));
             var hashedPassword = hasher.HashPassword("", password);
 
             BCrypt.Net.BCrypt.Verify(password, hashedPassword).Should().BeTrue();
@@ -107,6 +107,17 @@ namespace ScottBrady91.AspNetCore.Identity.BCryptPasswordHasher.Tests
             var hasher = new BCryptPasswordHasher<string>();
 
             hasher.VerifyHashedPassword("", hashedPassword, password).Should().Be(PasswordVerificationResult.Failed);
+        }
+
+        [Fact]
+        public void VerifyHashedPassword_WhenCorrectV10Password_ExpectSuccess()
+        {
+            const string password = "6@JM}T-3DeZo&2i=U73A^nEY7tXe_3UC%RR";
+            const string hashedPassword = "$2a$10$SpIhzEv3ATLa0CmTz4L7ouAn/w5NyedFic5X3fKaI9eu0xhW97OUC";
+
+            var hasher = new BCryptPasswordHasher<string>();
+
+            hasher.VerifyHashedPassword("", hashedPassword, password).Should().Be(PasswordVerificationResult.Success);
         }
     }
 }
