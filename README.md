@@ -23,3 +23,7 @@ services.Configure<BCryptPasswordHasherOptions>(options => {
 	options.EnhancedEntropy = false;
 });
 ```
+
+## .NET Support
+
+This library supports Current and LTS versions of .NET.
