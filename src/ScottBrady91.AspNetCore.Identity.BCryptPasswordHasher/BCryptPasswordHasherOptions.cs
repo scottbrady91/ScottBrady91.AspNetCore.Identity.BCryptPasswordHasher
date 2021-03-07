@@ -1,5 +1,8 @@
 ﻿namespace ScottBrady91.AspNetCore.Identity
 {
+    /// <summary>
+    /// Options for BCryptPasswordHasher.
+    /// </summary>
     public class BCryptPasswordHasherOptions
     {
         /// <summary>
