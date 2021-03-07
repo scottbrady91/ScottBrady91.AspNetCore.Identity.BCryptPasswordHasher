@@ -8,13 +8,29 @@ namespace ScottBrady91.AspNetCore.Identity.BCryptPasswordHasher.Tests
 {
     public class BCryptPasswordHasherTests
     {
+        private BCryptPasswordHasherOptions options = new BCryptPasswordHasherOptions();
+        
+        private BCryptPasswordHasher<string> CreateSut() =>
+            new BCryptPasswordHasher<string>(
+                options != null ? new OptionsWrapper<BCryptPasswordHasherOptions>(options) : null);
+
+        [Theory]
+        [InlineData(null)]
+        [InlineData("")]
+        [InlineData(" ")]
+        public void HashPassword_WhenPasswordIsNullOrWhitespace_ExpectArgumentNullException(string password)
+        {
+            var sut = CreateSut();
+            Assert.Throws<ArgumentNullException>(() => sut.HashPassword(null, password));
+        }
+        
         [Fact]
         public void HashPassword_WithDefaultSettings_ExpectVerifiableHash()
         {
             var password = Guid.NewGuid().ToString();
 
-            var hasher = new BCryptPasswordHasher<string>();
-            var hashedPassword = hasher.HashPassword("", password);
+            var sut = CreateSut();
+            var hashedPassword = sut.HashPassword("", password);
 
             BCrypt.Net.BCrypt.Verify(password, hashedPassword).Should().BeTrue();
         }
@@ -24,9 +40,9 @@ namespace ScottBrady91.AspNetCore.Identity.BCryptPasswordHasher.Tests
         {
             var password = Guid.NewGuid().ToString();
 
-            var hasher = new BCryptPasswordHasher<string>();
-            var hashedPassword1 = hasher.HashPassword("", password);
-            var hashedPassword2 = hasher.HashPassword("", password);
+            var sut = CreateSut();
+            var hashedPassword1 = sut.HashPassword("", password);
+            var hashedPassword2 = sut.HashPassword("", password);
 
             hashedPassword1.Should().NotBe(hashedPassword2);
         }
@@ -37,10 +53,10 @@ namespace ScottBrady91.AspNetCore.Identity.BCryptPasswordHasher.Tests
             var random = new Random();
             var password = Guid.NewGuid().ToString();
 
-            var hasher = new BCryptPasswordHasher<string>(
-                new OptionsWrapper<BCryptPasswordHasherOptions>(
-                    new BCryptPasswordHasherOptions {WorkFactor = random.Next(8, 18)}));
-            var hashedPassword = hasher.HashPassword("", password);
+            options.WorkFactor = options.WorkFactor - 1;
+            var sut = CreateSut();
+
+            var hashedPassword = sut.HashPassword("", password);
 
             BCrypt.Net.BCrypt.Verify(password, hashedPassword).Should().BeTrue();
         }
@@ -50,11 +66,10 @@ namespace ScottBrady91.AspNetCore.Identity.BCryptPasswordHasher.Tests
         {
             var password = Guid.NewGuid().ToString();
 
-            var hasher = new BCryptPasswordHasher<string>(
-                new OptionsWrapper<BCryptPasswordHasherOptions>(
-                    new BCryptPasswordHasherOptions {EnhancedEntropy = true}));
+            options.EnhancedEntropy = true;
+            var sut = CreateSut();
             
-            var hashedPassword = hasher.HashPassword("", password);
+            var hashedPassword = sut.HashPassword("", password);
 
             BCrypt.Net.BCrypt.Verify(password, hashedPassword, true).Should().BeTrue();
             BCrypt.Net.BCrypt.EnhancedVerify(password, hashedPassword).Should().BeTrue();
@@ -65,14 +80,33 @@ namespace ScottBrady91.AspNetCore.Identity.BCryptPasswordHasher.Tests
         {
             var password = Guid.NewGuid().ToString();
 
-            var hasher = new BCryptPasswordHasher<string>(
-                new OptionsWrapper<BCryptPasswordHasherOptions>(
-                    new BCryptPasswordHasherOptions { EnhancedEntropy = false }));
+            options.EnhancedEntropy = false;
+            var sut = CreateSut();
 
-            var hashedPassword = hasher.HashPassword("", password);
+            var hashedPassword = sut.HashPassword("", password);
 
             BCrypt.Net.BCrypt.Verify(password, hashedPassword, true).Should().BeFalse();
             BCrypt.Net.BCrypt.EnhancedVerify(password, hashedPassword).Should().BeFalse();
+        }
+        
+        [Theory]
+        [InlineData(null)]
+        [InlineData("")]
+        [InlineData(" ")]
+        public void VerifyHashedPassword_WhenHashedPasswordIsNullOrWhitespace_ExpectArgumentNullException(string hashedPassword)
+        {
+            var sut = CreateSut();
+            Assert.Throws<ArgumentNullException>(() => sut.VerifyHashedPassword(null, hashedPassword, Guid.NewGuid().ToString()));
+        }
+
+        [Theory]
+        [InlineData(null)]
+        [InlineData("")]
+        [InlineData(" ")]
+        public void VerifyHashedPassword_WhenPasswordIsNullOrWhitespace_ExpectArgumentNullException(string password)
+        {
+            var sut = CreateSut();
+            Assert.Throws<ArgumentNullException>(() => sut.VerifyHashedPassword(null, Guid.NewGuid().ToString(), password));
         }
 
         [Fact]
@@ -81,33 +115,33 @@ namespace ScottBrady91.AspNetCore.Identity.BCryptPasswordHasher.Tests
             var password = Guid.NewGuid().ToString();
             var hashedPassword = BCrypt.Net.BCrypt.HashPassword(password);
 
-            var hasher = new BCryptPasswordHasher<string>();
+            var sut = CreateSut();
 
-            hasher.VerifyHashedPassword("", hashedPassword, password).Should().Be(PasswordVerificationResult.Success);
+            sut.VerifyHashedPassword("", hashedPassword, password).Should().Be(PasswordVerificationResult.Success);
         }
 
         [Fact]
         public void VerifyHashedPassword_WithEnhancedEntropy_ExpectSuccess()
         {
-            var options = new BCryptPasswordHasherOptions {EnhancedEntropy = true};
             var password = Guid.NewGuid().ToString();
             var hashedPassword = BCrypt.Net.BCrypt.HashPassword(password, options.WorkFactor, true);
 
-            var hasher = new BCryptPasswordHasher<string>(new OptionsWrapper<BCryptPasswordHasherOptions>(options));
+            options.EnhancedEntropy = true;
+            var sut = CreateSut();
 
-            hasher.VerifyHashedPassword("", hashedPassword, password).Should().Be(PasswordVerificationResult.Success);
+            sut.VerifyHashedPassword("", hashedPassword, password).Should().Be(PasswordVerificationResult.Success);
         }
 
         [Fact]
         public void VerifyHashedPassword_WhenPasswordCreatedWithEnhancedEntropyButVerifiedWithout_ExpectFailure()
         {
-            var options = new BCryptPasswordHasherOptions { EnhancedEntropy = true };
             var password = Guid.NewGuid().ToString();
-            var hashedPassword = BCrypt.Net.BCrypt.HashPassword(password, options.WorkFactor);
+            var hashedPassword = BCrypt.Net.BCrypt.HashPassword(password, options.WorkFactor, false);
 
-            var hasher = new BCryptPasswordHasher<string>(new OptionsWrapper<BCryptPasswordHasherOptions>(options));
+            options.EnhancedEntropy = true;
+            var sut = CreateSut();
 
-            hasher.VerifyHashedPassword("", hashedPassword, password).Should().Be(PasswordVerificationResult.Failed);
+            sut.VerifyHashedPassword("", hashedPassword, password).Should().Be(PasswordVerificationResult.Failed);
         }
         
         [Fact]
@@ -116,20 +150,32 @@ namespace ScottBrady91.AspNetCore.Identity.BCryptPasswordHasher.Tests
             var password = Guid.NewGuid().ToString();
             var hashedPassword = BCrypt.Net.BCrypt.HashPassword(Guid.NewGuid().ToString());
 
-            var hasher = new BCryptPasswordHasher<string>();
+            var sut = CreateSut();
 
-            hasher.VerifyHashedPassword("", hashedPassword, password).Should().Be(PasswordVerificationResult.Failed);
+            sut.VerifyHashedPassword("", hashedPassword, password).Should().Be(PasswordVerificationResult.Failed);
         }
 
         [Fact]
-        public void VerifyHashedPassword_WhenCorrectV10Password_ExpectSuccess()
+        public void VerifyHashedPassword_WhenCorrectV10Password_ExpectSuccessRehashNeeded()
         {
             const string password = "6@JM}T-3DeZo&2i=U73A^nEY7tXe_3UC%RR";
             const string hashedPassword = "$2a$10$SpIhzEv3ATLa0CmTz4L7ouAn/w5NyedFic5X3fKaI9eu0xhW97OUC";
 
-            var hasher = new BCryptPasswordHasher<string>();
+            var sut = CreateSut();
 
-            hasher.VerifyHashedPassword("", hashedPassword, password).Should().Be(PasswordVerificationResult.Success);
+            sut.VerifyHashedPassword("", hashedPassword, password).Should().Be(PasswordVerificationResult.SuccessRehashNeeded);
+        }
+
+        [Fact]
+        public void VerifyHashedPassword_WhenPasswordHashedWithLowerEntropy_ExpectSuccessRehashNeeded()
+        {
+            var password = Guid.NewGuid().ToString();
+            var hashedPassword = BCrypt.Net.BCrypt.HashPassword(password, 10);
+
+            options.WorkFactor = 11;
+            var sut = CreateSut();
+
+            sut.VerifyHashedPassword("", hashedPassword, password).Should().Be(PasswordVerificationResult.SuccessRehashNeeded);
         }
     }
 }

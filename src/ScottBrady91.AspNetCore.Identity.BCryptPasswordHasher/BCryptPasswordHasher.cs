@@ -15,17 +15,22 @@ namespace ScottBrady91.AspNetCore.Identity
 
         public virtual string HashPassword(TUser user, string password)
         {
-            if (password == null) throw new ArgumentNullException(nameof(password));
+            if (string.IsNullOrWhiteSpace(password)) throw new ArgumentNullException(nameof(password));
 
             return BCrypt.Net.BCrypt.HashPassword(password, options.WorkFactor, options.EnhancedEntropy);
         }
 
         public virtual PasswordVerificationResult VerifyHashedPassword(TUser user, string hashedPassword, string providedPassword)
         {
-            if (hashedPassword == null) throw new ArgumentNullException(nameof(hashedPassword));
-            if (providedPassword == null) throw new ArgumentNullException(nameof(providedPassword));
+            if (string.IsNullOrWhiteSpace(hashedPassword)) throw new ArgumentNullException(nameof(hashedPassword));
+            if (string.IsNullOrWhiteSpace(providedPassword)) throw new ArgumentNullException(nameof(providedPassword));
 
             var isValid = BCrypt.Net.BCrypt.Verify(providedPassword, hashedPassword, options.EnhancedEntropy);
+
+            if (isValid && BCrypt.Net.BCrypt.PasswordNeedsRehash(hashedPassword, options.WorkFactor))
+            {
+                return PasswordVerificationResult.SuccessRehashNeeded;
+            }
 
             return isValid ? PasswordVerificationResult.Success : PasswordVerificationResult.Failed;
         }
