@@ -1,4 +1,4 @@
-# bcrypt Password Hasher for ASP.NET Core Identity (ASP.NET Identity 3)
+# BCrypt Password Hasher for ASP.NET Core Identity (ASP.NET Identity 3)
 
 [![NuGet](https://img.shields.io/nuget/v/ScottBrady91.AspNetCore.Identity.BCryptPasswordHasher.svg)](https://www.nuget.org/packages/ScottBrady91.AspNetCore.Identity.BCryptPasswordHasher/)
 
