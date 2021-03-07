@@ -18,6 +18,18 @@ namespace ScottBrady91.AspNetCore.Identity.BCryptPasswordHasher.Tests
 
             BCrypt.Net.BCrypt.Verify(password, hashedPassword).Should().BeTrue();
         }
+
+        [Fact]
+        public void HashPassword_WhenCalledMultipleTimesWithSamePlaintext_ExpectDifferentHash()
+        {
+            var password = Guid.NewGuid().ToString();
+
+            var hasher = new BCryptPasswordHasher<string>();
+            var hashedPassword1 = hasher.HashPassword("", password);
+            var hashedPassword2 = hasher.HashPassword("", password);
+
+            hashedPassword1.Should().NotBe(hashedPassword2);
+        }
         
         [Fact]
         public void HashPassword_WithCustomWorkFactor_ExpectVerifiableHash()
