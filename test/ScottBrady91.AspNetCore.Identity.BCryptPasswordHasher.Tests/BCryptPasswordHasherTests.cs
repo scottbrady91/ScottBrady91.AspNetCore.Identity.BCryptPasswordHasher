@@ -3,6 +3,7 @@ using FluentAssertions;
 using Microsoft.AspNetCore.Identity;
 using Microsoft.Extensions.Options;
 using Xunit;
+#pragma warning disable 618
 
 namespace ScottBrady91.AspNetCore.Identity.BCryptPasswordHasher.Tests
 {
@@ -50,7 +51,6 @@ namespace ScottBrady91.AspNetCore.Identity.BCryptPasswordHasher.Tests
         [Fact]
         public void HashPassword_WithCustomWorkFactor_ExpectVerifiableHash()
         {
-            var random = new Random();
             var password = Guid.NewGuid().ToString();
 
             options.WorkFactor = options.WorkFactor - 1;

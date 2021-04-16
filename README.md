@@ -14,7 +14,7 @@ services.AddScoped<IPasswordHasher<TUser>, BCryptPasswordHasher<TUser>>();
 ### Options
 
 - **WorkFactor**: int
-- **EnhancedEntropy**: bool
+- **EnhancedEntropy**: bool *(Obsolete due to [password shucking](https://www.scottbrady91.com/Authentication/Beware-of-Password-Shucking) vulnerability)*
 
 Register with:
 

@@ -32,7 +32,9 @@ namespace ScottBrady91.AspNetCore.Identity
         {
             if (string.IsNullOrWhiteSpace(password)) throw new ArgumentNullException(nameof(password));
 
+#pragma warning disable 618
             return BCrypt.Net.BCrypt.HashPassword(password, options.WorkFactor, options.EnhancedEntropy);
+#pragma warning restore 618
         }
 
         /// <summary>
@@ -48,7 +50,9 @@ namespace ScottBrady91.AspNetCore.Identity
             if (string.IsNullOrWhiteSpace(hashedPassword)) throw new ArgumentNullException(nameof(hashedPassword));
             if (string.IsNullOrWhiteSpace(providedPassword)) throw new ArgumentNullException(nameof(providedPassword));
 
+#pragma warning disable 618
             var isValid = BCrypt.Net.BCrypt.Verify(providedPassword, hashedPassword, options.EnhancedEntropy);
+#pragma warning restore 618
 
             if (isValid && BCrypt.Net.BCrypt.PasswordNeedsRehash(hashedPassword, options.WorkFactor))
             {
